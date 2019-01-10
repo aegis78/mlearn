@@ -71,7 +71,6 @@ def process(last_date, last_id, list_size):
         #print(str(summary['type']))
         if summary['media_type'] != 'website':
             try:
-
                 try:
                     width = summary['width']
                     height = summary['height']
