@@ -23,14 +23,14 @@ def data_request(last_date, last_id, list_size):
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     if response.status_code != 200:
-        exit(1);
+        exit(1)
 
     return response
 
 
 def data_json_create(data):
-    dataParse = json.loads(data)
-    return dataParse
+    data_parse = json.loads(data)
+    return data_parse
 
 
 def img_download(url, directory, filename, width, height):
@@ -43,7 +43,6 @@ def img_download(url, directory, filename, width, height):
             print("Failed to create directory!!!!!")
             raise
 
-    #makedirs(directory)
     filepath = os.path.join(directory, filename)
     mem = urllib.request.urlopen(download_url_prefix).read()
     with open(filepath, mode="wb") as f:
@@ -57,18 +56,15 @@ def process(last_date, last_id, list_size):
     data = data_request(last_date, last_id, list_size)
     print('origin Data = ' + data.text)
 
-    jsonData = data_json_create(data.text)
-
-    #print('jsonParsingData = ' + str(jsonData))
-    last_date = jsonData['lastdate']
+    json_data = data_json_create(data.text)
+    last_date = json_data['lastdate']
     last_id = ''
 
-    post_list = jsonData['postList']
+    post_list = json_data['postList']
     for post in post_list:
         last_id = post['identity']
         summary = data_json_create(post['summary'])
 
-        #print(str(summary['type']))
         if summary['media_type'] != 'website':
             try:
                 try:
