@@ -22,9 +22,6 @@ def data_request(last_date, last_id, list_size):
         'Postman-Token': "607f3b6b-22fc-4aad-95c5-ed54122c2480"}
 
     response = requests.request("GET", url, headers=headers, params=querystring)
-    if response.status_code != 200:
-        exit(1)
-
     return response
 
 
@@ -61,6 +58,9 @@ def process(last_date, last_id, list_size):
     last_id = ''
 
     post_list = json_data['postList']
+    if len(post_list) <= 0:
+        exit(1)
+
     for post in post_list:
         last_id = post['identity']
         summary = data_json_create(post['summary'])
@@ -79,6 +79,8 @@ def process(last_date, last_id, list_size):
 
                 ext = img_url.split('.')
                 ext = ext[len(ext) - 1]
+                if ext == 'swf':
+                    ext = 'jpg'
                 print('ext = ' + ext)
 
                 print('download img =' + img_url + ' || text = ' + last_id + ' || width = ' + str(width) + ' || height = ' + str(height))
