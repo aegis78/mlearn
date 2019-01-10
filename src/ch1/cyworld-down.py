@@ -1,7 +1,7 @@
 import requests
 import json
 import urllib.request
-from os import makedirs
+import os
 import time
 
 
@@ -22,6 +22,9 @@ def data_request(last_date, last_id, list_size):
         'Postman-Token': "607f3b6b-22fc-4aad-95c5-ed54122c2480"}
 
     response = requests.request("GET", url, headers=headers, params=querystring)
+    if response.status_code != 200:
+        exit(1);
+
     return response
 
 
@@ -32,9 +35,18 @@ def data_json_create(data):
 
 def img_download(url, directory, filename, width, height):
     download_url_prefix = 'http://nthumb.cyworld.com//thumb?width=' + str(width) + '&height=' + str(height) + '&url=' + url
+    try:
+        if not (os.path.isdir(directory)):
+            os.makedirs(os.path.join(directory))
+    except OSError as e:
+        if e.errno != e.errno.EEXIST:
+            print("Failed to create directory!!!!!")
+            raise
+
     #makedirs(directory)
+    filepath = os.path.join(directory, filename)
     mem = urllib.request.urlopen(download_url_prefix).read()
-    with open(filename, mode="wb") as f:
+    with open(filepath, mode="wb") as f:
         f.write(mem)
         print("저장 되었습니다..!")
 
@@ -43,11 +55,10 @@ def process(last_date, last_id, list_size):
         list_size = '20'
     # cyworld post data를 획득한다.
     data = data_request(last_date, last_id, list_size)
-    if data == '':
-        print('더이상 다운받을 데이터가 없습니다.')
-        return
+    print('origin Data = ' + data.text)
 
     jsonData = data_json_create(data.text)
+
     #print('jsonParsingData = ' + str(jsonData))
     last_date = jsonData['lastdate']
     last_id = ''
@@ -61,23 +72,28 @@ def process(last_date, last_id, list_size):
         if summary['media_type'] != 'website':
             try:
 
-                width = summary['width']
-                height = summary['height']
+                try:
+                    width = summary['width']
+                    height = summary['height']
+                except Exception as ex:
+                    print('width not val')
+                    width = 2000
+                    height = 2000
+
                 img_url = summary['image']
-                '''
-                text = summary['text']
-                if len(text) >= 0:
-                    text = 'noText'
-                else:
-                    text[:5]
-                '''
+
+                ext = img_url.split('.')
+                ext = ext[len(ext) - 1]
+                print('ext = ' + ext)
+
                 print('download img =' + img_url + ' || text = ' + last_id + ' || width = ' + str(width) + ' || height = ' + str(height))
-                img_download(img_url, './cyworld-picture', last_id + '.jpg', width, height)
+                img_download(img_url, './cyworld-picture', last_id + '.' + ext, width, height)
                 time.sleep(1)  # 1초 휴식
             except Exception as ex:
                 print('error', ex)
 
-
+    print('lastID = ' + last_id)
+    print('lastDate = ' + str(last_date))
     process(last_date, last_id, '20')
 
 
